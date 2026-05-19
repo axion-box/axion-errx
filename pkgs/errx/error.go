@@ -34,16 +34,35 @@ func (t *Type) New(message string, args ...any) *Error {
 }
 
 // Wrap 用当前错误类型包装一个已有错误，并补充新的用户可读消息。
+// 日常处理任意 error 时，优先使用 errx.WrapError，让普通 error 和已有 errx.Error
+// 都能按统一规则被包装；只有在调用方明确知道要强制指定错误类型时，再直接使用 Type.Wrap。
 func (t *Type) Wrap(err error, message string, args ...any) *Error {
 	if err == nil {
 		return nil
 	}
+
+	formatted := formatMessage(message, args...)
 	return &Error{
 		typ:        t,
-		message:    coalesceMessage(formatMessage(message, args...), err),
+		message:    coalesceMessage(appendMessage(formatted, errorMessage(err)), err),
 		cause:      err,
 		stacktrace: captureStacktrace(),
 	}
+}
+
+// WrapError 按统一规则包装一个已有错误。
+// 如果 err 已经是 errx.Error，则沿用原有 Type 重新包装，并把新的 message 追加到原消息后面。
+// 否则，使用 ExternalError 包装。
+func WrapError(err error, message string, args ...any) *Error {
+	if err == nil {
+		return nil
+	}
+
+	formatted := formatMessage(message, args...)
+	if ex := Cast(err); ex != nil {
+		return ex.Type().Wrap(err, "%s", formatted)
+	}
+	return ExternalError.Wrap(err, "%s", formatted)
 }
 
 // Error 返回错误的用户可读消息。
@@ -51,7 +70,7 @@ func (e *Error) Error() string {
 	if e == nil {
 		return ""
 	}
-	return e.message
+	return buildErrorString(e.Type().Name(), e.message)
 }
 
 // Message 返回错误消息本体，不包含类型和堆栈信息。
@@ -196,9 +215,41 @@ func coalesceMessage(message string, cause error) string {
 		return message
 	}
 	if cause != nil {
-		return cause.Error()
+		return errorMessage(cause)
 	}
 	return ""
+}
+
+func appendMessage(prefix string, suffix string) string {
+	switch {
+	case prefix == "":
+		return suffix
+	case suffix == "":
+		return prefix
+	default:
+		return prefix + ": " + suffix
+	}
+}
+
+func errorMessage(err error) string {
+	if ex := Cast(err); ex != nil {
+		return ex.Message()
+	}
+	if err == nil {
+		return ""
+	}
+	return err.Error()
+}
+
+func buildErrorString(errorType string, message string) string {
+	switch {
+	case errorType == "":
+		return message
+	case message == "":
+		return errorType
+	default:
+		return errorType + ": " + message
+	}
 }
 
 func captureStacktrace() string {

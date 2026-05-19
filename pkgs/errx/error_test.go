@@ -14,7 +14,7 @@ func TestNewErrorCarriesTypeMessageCodeAndStacktrace(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if err.Error() != "invalid user id: 42" {
+	if err.Error() != "illegal_argument: invalid user id: 42" {
 		t.Fatalf("unexpected error string: %q", err.Error())
 	}
 	if err.Type() != errx.IllegalArgument {
@@ -61,6 +61,12 @@ func TestWrapPreservesCauseAndSupportsHelpers(t *testing.T) {
 	if errx.Code(err) != errx.ExternalError.Code() {
 		t.Fatalf("unexpected code from helper: got %d", errx.Code(err))
 	}
+	if err.Message() != "cloud request failed: dial tcp timeout" {
+		t.Fatalf("unexpected message: %q", err.Message())
+	}
+	if err.Error() != "external_error: cloud request failed: dial tcp timeout" {
+		t.Fatalf("unexpected error string: %q", err.Error())
+	}
 }
 
 func TestWrapFallsBackToCauseMessageWhenMessageEmpty(t *testing.T) {
@@ -74,11 +80,115 @@ func TestWrapFallsBackToCauseMessageWhenMessageEmpty(t *testing.T) {
 	}
 }
 
+func TestWrapUsesStructuredMessageWhenCauseIsErrxError(t *testing.T) {
+	t.Parallel()
+
+	base := errx.NotFound.New("record missing")
+	err := errx.Conflict.Wrap(base, "save profile failed")
+
+	if err.Message() != "save profile failed: record missing" {
+		t.Fatalf("unexpected message: %q", err.Message())
+	}
+	if err.Error() != "conflict: save profile failed: record missing" {
+		t.Fatalf("unexpected error string: %q", err.Error())
+	}
+	if err.Cause() != base {
+		t.Fatalf("unexpected cause: %v", err.Cause())
+	}
+}
+
 func TestWrapReturnsNilForNilCause(t *testing.T) {
 	t.Parallel()
 
 	if got := errx.ExternalError.Wrap(nil, "ignored"); got != nil {
 		t.Fatalf("expected nil wrap result, got %#v", got)
+	}
+}
+
+func TestWrapErrorReturnsNilForNilCause(t *testing.T) {
+	t.Parallel()
+
+	if got := errx.WrapError(nil, "ignored"); got != nil {
+		t.Fatalf("expected nil wrap result, got %#v", got)
+	}
+}
+
+func TestWrapErrorWrapsPlainErrorAsExternalError(t *testing.T) {
+	t.Parallel()
+
+	base := errors.New("dial tcp timeout")
+	err := errx.WrapError(base, "cloud request failed")
+
+	if err == nil {
+		t.Fatal("expected wrapped error")
+	}
+	if err.Type() != errx.ExternalError {
+		t.Fatalf("unexpected type: got %v", err.Type())
+	}
+	if err.Message() != "cloud request failed: dial tcp timeout" {
+		t.Fatalf("unexpected message: %q", err.Message())
+	}
+	if err.Error() != "external_error: cloud request failed: dial tcp timeout" {
+		t.Fatalf("unexpected error string: %q", err.Error())
+	}
+	if err.Cause() != base {
+		t.Fatalf("unexpected cause: %v", err.Cause())
+	}
+	if !errors.Is(err, base) {
+		t.Fatal("expected wrapped cause in error chain")
+	}
+}
+
+func TestWrapErrorReusesExistingErrxTypeAndAppendsMessage(t *testing.T) {
+	t.Parallel()
+
+	baseCause := errors.New("record missing")
+	base := errx.NotFound.Wrap(baseCause, "load profile failed")
+	err := errx.WrapError(base, "while refreshing cache")
+
+	if err == nil {
+		t.Fatal("expected wrapped error")
+	}
+	if err == base {
+		t.Fatal("expected a newly created errx error")
+	}
+	if err.Type() != errx.NotFound {
+		t.Fatalf("unexpected type: got %v", err.Type())
+	}
+	if err.Message() != "while refreshing cache: load profile failed: record missing" {
+		t.Fatalf("unexpected message: %q", err.Message())
+	}
+	if err.Error() != "not_found: while refreshing cache: load profile failed: record missing" {
+		t.Fatalf("unexpected error string: %q", err.Error())
+	}
+	if err.Cause() != base {
+		t.Fatalf("unexpected cause: %v", err.Cause())
+	}
+	if !errors.Is(err, base) {
+		t.Fatal("expected original errx error in error chain")
+	}
+	if !errors.Is(err, baseCause) {
+		t.Fatal("expected original root cause in error chain")
+	}
+	if err.Stacktrace() == "" {
+		t.Fatal("expected stacktrace")
+	}
+}
+
+func TestWrapErrorKeepsOriginalMessageWhenNewMessageEmpty(t *testing.T) {
+	t.Parallel()
+
+	base := errx.IllegalState.New("worker already started")
+	err := errx.WrapError(base, "")
+
+	if err.Message() != "worker already started" {
+		t.Fatalf("unexpected message: %q", err.Message())
+	}
+	if err.Type() != errx.IllegalState {
+		t.Fatalf("unexpected type: got %v", err.Type())
+	}
+	if err.Error() != "illegal_state: worker already started" {
+		t.Fatalf("unexpected error string: %q", err.Error())
 	}
 }
 
