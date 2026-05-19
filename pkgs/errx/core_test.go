@@ -45,10 +45,65 @@ func TestCoreErrorCodes(t *testing.T) {
 	}
 }
 
+func TestCoreErrorsCrossMatchWithIsOfType(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name string
+		typ  *errx.Type
+	}{
+		{name: "internal_error", typ: errx.InternalError},
+		{name: "illegal_argument", typ: errx.IllegalArgument},
+		{name: "unauthorized", typ: errx.Unauthorized},
+		{name: "forbidden", typ: errx.Forbidden},
+		{name: "not_found", typ: errx.NotFound},
+		{name: "conflict", typ: errx.Conflict},
+		{name: "data_unavailable", typ: errx.DataUnavailable},
+		{name: "rejected_operation", typ: errx.RejectedOperation},
+		{name: "unsupported_operation", typ: errx.UnsupportedOperation},
+		{name: "illegal_state", typ: errx.IllegalState},
+		{name: "illegal_format", typ: errx.IllegalFormat},
+		{name: "external_error", typ: errx.ExternalError},
+		{name: "initialization_failed", typ: errx.InitializationFailed},
+		{name: "method_not_allowed", typ: errx.MethodNotAllowed},
+		{name: "bad_request_body", typ: errx.BadRequestBody},
+	}
+
+	for _, source := range cases {
+		source := source
+		t.Run(source.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := source.typ.New("test message")
+			for _, target := range cases {
+				target := target
+
+				got := errx.IsOfType(err, target.typ)
+				want := source.typ == target.typ
+				if got != want {
+					t.Fatalf("unexpected IsOfType result: source=%s target=%s got=%t want=%t", source.name, target.name, got, want)
+				}
+			}
+		})
+	}
+}
+
 func TestNotImplementedAliasesUnsupportedOperation(t *testing.T) {
 	t.Parallel()
 
 	if errx.NotImplemented != errx.UnsupportedOperation {
 		t.Fatal("expected not implemented to alias unsupported operation")
+	}
+}
+
+func TestNotImplementedMatchesUnsupportedOperationWithIsOfType(t *testing.T) {
+	t.Parallel()
+
+	err := errx.NotImplemented.New("feature pending")
+	if !errx.IsOfType(err, errx.UnsupportedOperation) {
+		t.Fatal("expected not implemented error to match unsupported operation")
+	}
+	if !errx.IsOfType(err, errx.NotImplemented) {
+		t.Fatal("expected not implemented error to match not implemented alias")
 	}
 }
