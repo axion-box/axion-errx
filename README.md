@@ -160,7 +160,7 @@ package billing
 
 import "github.com/axion-box/axion-errx/pkgs/errx"
 
-var InvoiceClosed = errx.NewType("invoice_closed", 21001)
+var InvoiceClosed = errx.NewType("invoice_closed", 2100)
 ```
 
 然后像预定义类型一样继续使用：
@@ -176,6 +176,16 @@ func CloseInvoice() error {
 - `NewType` 统一使用 `errx.NewType("name", code)` 形式
 - `name` 和 `code` 在同一进程内必须唯一，重复注册会 `panic`
 - `1000~1999` 是共享层保留错误码段；业务私有错误码应在各自仓库维护
+
+## 已知下游业务错误码范围
+
+下游项目必须在自己的仓库内维护并自动校验业务错误码，同时在这里登记所占范围，避免不同项目复用同一段编号：
+
+| Project | Repository | Business error code range |
+| --- | --- | ---: |
+| `axion-cloud-v2` | `github.com/axion-box/axion-cloud-v2` | `2000~2999` |
+
+新增项目或调整范围时，必须先更新本表；已登记范围不得互相重叠，也不得占用共享层保留的 `1000~1999`。
 
 ## 开发
 
