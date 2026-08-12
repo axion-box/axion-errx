@@ -48,4 +48,7 @@ var (
 
 	// BadRequestBody 表示请求体解析失败，或请求体结构不符合预期。
 	BadRequestBody = NewType("bad_request_body", 1014)
+
+	// UpstreamDisconnected 表示外部系统没有发送可解释的错误终态便断开连接。
+	UpstreamDisconnected = NewType("upstream_disconnected", 1015)
 )

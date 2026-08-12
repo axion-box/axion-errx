@@ -143,10 +143,12 @@ func main() {
 | `initialization_failed` | `1012` |
 | `method_not_allowed` | `1013` |
 | `bad_request_body` | `1014` |
+| `upstream_disconnected` | `1015` |
 
 其中：
 
 - `errx.NotImplemented` 是 `errx.UnsupportedOperation` 的别名
+- `errx.UpstreamDisconnected` 只表示外部系统未发送可解释错误终态便断开；上游已经发送的错误应保留其原始分类
 - 这些类型适合放在共享层复用，不适合承载某个业务仓库私有语义
 
 ## 定义业务错误

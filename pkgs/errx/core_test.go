@@ -29,6 +29,7 @@ func TestCoreErrorCodes(t *testing.T) {
 		{name: "initialization_failed", typ: errx.InitializationFailed, code: 1012},
 		{name: "method_not_allowed", typ: errx.MethodNotAllowed, code: 1013},
 		{name: "bad_request_body", typ: errx.BadRequestBody, code: 1014},
+		{name: "upstream_disconnected", typ: errx.UpstreamDisconnected, code: 1015},
 	}
 
 	for _, tc := range cases {
@@ -67,6 +68,7 @@ func TestCoreErrorsCrossMatchWithIsOfType(t *testing.T) {
 		{name: "initialization_failed", typ: errx.InitializationFailed},
 		{name: "method_not_allowed", typ: errx.MethodNotAllowed},
 		{name: "bad_request_body", typ: errx.BadRequestBody},
+		{name: "upstream_disconnected", typ: errx.UpstreamDisconnected},
 	}
 
 	for _, source := range cases {
