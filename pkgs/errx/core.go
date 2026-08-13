@@ -52,6 +52,6 @@ var (
 	// UpstreamDisconnected 表示外部系统没有发送可解释的错误终态便断开连接。
 	UpstreamDisconnected = NewType("upstream_disconnected", 1015)
 
-	// QuotaExhausted 表示可用账号池、当前用户或全局配额已经耗尽。
-	QuotaExhausted = NewType("quota_exhausted", 1016)
+	// UpstreamQuotaExhausted 表示可用上游账号池配额已经耗尽。
+	UpstreamQuotaExhausted = NewType("upstream_quota_exhausted", 1016)
 )

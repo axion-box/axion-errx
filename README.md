@@ -144,13 +144,13 @@ func main() {
 | `method_not_allowed` | `1013` |
 | `bad_request_body` | `1014` |
 | `upstream_disconnected` | `1015` |
-| `quota_exhausted` | `1016` |
+| `upstream_quota_exhausted` | `1016` |
 
 其中：
 
 - `errx.NotImplemented` 是 `errx.UnsupportedOperation` 的别名
 - `errx.UpstreamDisconnected` 只表示外部系统未发送可解释错误终态便断开；上游已经发送的错误应保留其原始分类
-- `errx.QuotaExhausted` 统一表示可用账号池、当前用户或全局配额已经耗尽；它不表示普通平台过载、未知限流或瞬时网络失败
+- `errx.UpstreamQuotaExhausted` 只表示可用上游账号池配额已经耗尽；它不表示用户积分不足、普通平台过载、未知限流或瞬时网络失败
 - 这些类型适合放在共享层复用，不适合承载某个业务仓库私有语义
 
 ## 定义业务错误
