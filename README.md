@@ -187,8 +187,20 @@ func CloseInvoice() error {
 | --- | --- | ---: |
 | `axion-cloud-v2` | `github.com/axion-box/axion-cloud-v2` | `2000~2999` |
 | `axion-agent-v2` | `github.com/axion-box/axion-agent-v2` | `3000~3999` |
+| `glenclaw-upgrade` | `github.com/axion-box/glenclaw-upgrade` | `4000~4999` |
 
 新增项目或调整范围时，必须先更新本表；已登记范围不得互相重叠，也不得占用共享层保留的 `1000~1999`。
+
+`glenclaw-upgrade` 当前稳定领域错误如下；具体类型仍在业务仓库定义，避免共享库反向依赖设备升级实现：
+
+| Type | Code | Meaning |
+| --- | ---: | --- |
+| `upgrade_current_plan_changed` | `4001` | 下载指令排队期间 current 已切换，调用方应刷新后重试。 |
+| `upgrade_current_plan_locked` | `4002` | current 已进入下载或安装阶段，最新计划只能保留为 latest。 |
+| `upgrade_no_current_update` | `4003` | 当前没有可供目标指令操作的更新。 |
+| `upgrade_download_state_conflict` | `4004` | 下载指令与队列当前状态冲突。 |
+| `upgrade_downloads_not_ready` | `4005` | 镜像尚未全部下载并验证，不能安装。 |
+| `upgrade_installation_active` | `4006` | 安装已经激活，不允许在线取消。 |
 
 ## 开发
 
