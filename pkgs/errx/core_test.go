@@ -31,6 +31,7 @@ func TestCoreErrorCodes(t *testing.T) {
 		{name: "bad_request_body", typ: errx.BadRequestBody, code: 1014},
 		{name: "upstream_disconnected", typ: errx.UpstreamDisconnected, code: 1015},
 		{name: "upstream_quota_exhausted", typ: errx.UpstreamQuotaExhausted, code: 1016},
+		{name: "execution_skipped", typ: errx.ExecutionSkipped, code: 1017},
 	}
 
 	for _, tc := range cases {
@@ -71,6 +72,7 @@ func TestCoreErrorsCrossMatchWithIsOfType(t *testing.T) {
 		{name: "bad_request_body", typ: errx.BadRequestBody},
 		{name: "upstream_disconnected", typ: errx.UpstreamDisconnected},
 		{name: "upstream_quota_exhausted", typ: errx.UpstreamQuotaExhausted},
+		{name: "execution_skipped", typ: errx.ExecutionSkipped},
 	}
 
 	for _, source := range cases {

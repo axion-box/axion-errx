@@ -54,4 +54,7 @@ var (
 
 	// UpstreamQuotaExhausted 表示可用上游账号池配额已经耗尽。
 	UpstreamQuotaExhausted = NewType("upstream_quota_exhausted", 1016)
+
+	// ExecutionSkipped 表示上游明确要求跳过本次执行，不应作为暂时故障重试。
+	ExecutionSkipped = NewType("execution_skipped", 1017)
 )
